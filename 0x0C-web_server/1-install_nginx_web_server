@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Installs nginx server
-sudo apt-get update -y
+# Install Nginx with custom configuration.
 
-sudo apt-get install nginx -y
-
-echo 'Hello World!' > /var/www.html/index.html
-
-service nginx restart
+sudo apt-get update
+sudo apt-get -y install nginx
+sudo chown -R ubuntu /var/www
+echo "Hello World" > /var/www/html/index.html
+sudo service nginx start

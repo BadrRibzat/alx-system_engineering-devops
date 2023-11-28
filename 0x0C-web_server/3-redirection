@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-# Configure Nginx server so that /redirect_me is redirecting to another page
-# redirection must be a “301 Moved Permanently”
-# By: Imanol Asolo
+# Creates a redirection
 
-ADD301_REDIRECT="\\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;"
-
-sudo apt-get update -y
-sudo apt-get install nginx -y
-sudo chown -R ubuntu /var/www
-echo "Hello World!" > /var/www/html/index.nginx-debian.html
-sudo sed -i "30i $ADD301_REDIRECT" /etc/nginx/sites-available/default
+sudo apt-get update
+sudo apt-get -y install nginx
+sudo service nginx start
+echo "Holberton School" | sudo tee /usr/share/nginx/html/index.html
+redirect="\n\tlocation /redirect_me {\n\t\treturn 301 https://www.youtube.com;\n\t}\n"
+sudo sed -i "37i\ $redirect" /etc/nginx/sites-available/default
 sudo service nginx restart
+sudo service nginx reload

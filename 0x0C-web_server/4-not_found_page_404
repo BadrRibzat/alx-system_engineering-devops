@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
-# Configure Nginx server so that /redirect_me is redirecting to another page
-# redirection must be a “301 Moved Permanently”
-# Include a custom 404 page that contains a string
-# By: Imanol Asolo
+# Redirect
+SU=$(whoami)
+DIR="/etc/nginx/sites-available/default"
+NEW_URL="https://twitter.com"
+OLD_URL="/redirect_me"
+REDIRECT="\tlocation ${OLD_URL} {\n\t\treturn 301 ${NEW_URL};\n\t}"
+DIR_SERVER="/var/www/html/"
+ERROR404="server {\n\terror_page 404 \/error404.html;"
 
-ADD301_REDIRECT="\\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;"
-ADD404_NOTFOUND="\n\\terror_page 404 /404.html;\n\tlocation = /var/www/html/404.html {\n\t\tinternal;\n\t}"
-PATTERN="#error_page 404 /404.html;"
+if [[ "$SU" == "root" ]]; then
+	SU="sudo"
+else
+	echo "your need run with prefix sudo"
+	exit
+fi
+
+$SU usermod -aG $SU "$(whoami)"
+$SU apt-get -y update
+$SU apt-get -y install nginx
 
 
-sudo apt-get update
-sudo apt-get install -y nginx
-sudo chown -R ubuntu /var/www
-echo "Hello World!" > /var/www/html/index.nginx-debian.html
-sudo sed -i "30i $ADD301_REDIRECT" /etc/nginx/sites-available/default
-echo "Ceci n'est pas une page" > /var/www/html/404.html
-sudo sed -i "47i\ $PATTERN$ADD404_NOTFOUND" /etc/nginx/sites-available/default
-sudo service nginx restart
-sudo service nginx reload
+$SU mkdir --parents "${DIR_SERVER}"
+$SU echo "Hello World" > "${DIR_SERVER}index.html"
+$SU echo "Ceci n'est pas une page" > "${DIR_SERVER}error404.html"
+
+
+$SU sed -i "/server_name _;/ a\\${REDIRECT}" $DIR
+sed -i "s/^server\s{/$ERROR404/1" $DIR
+$SU service nginx restart
