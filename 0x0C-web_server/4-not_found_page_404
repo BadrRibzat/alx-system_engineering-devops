@@ -1,30 +1,12 @@
 #!/usr/bin/env bash
-# Redirect
-SU=$(whoami)
-DIR="/etc/nginx/sites-available/default"
-NEW_URL="https://twitter.com"
-OLD_URL="/redirect_me"
-REDIRECT="\tlocation ${OLD_URL} {\n\t\treturn 301 ${NEW_URL};\n\t}"
-DIR_SERVER="/var/www/html/"
-ERROR404="server {\n\terror_page 404 \/error404.html;"
+# setup nginx web server, including 301 redirect
+apt-get -y update
+apt-get -y install nginx
 
-if [[ "$SU" == "root" ]]; then
-	SU="sudo"
-else
-	echo "your need run with prefix sudo"
-	exit
-fi
+echo 'Holberton School' > /var/www/html/index.html
+echo "Ceci n'est pas une page" > /var/www/html/404.html
 
-$SU usermod -aG $SU "$(whoami)"
-$SU apt-get -y update
-$SU apt-get -y install nginx
+sed -i "/listen \[::]:80 default_server;/a\	rewrite ^/redirect_me/?.*$ https://www.youtube.com/watch?v=mTEros927Ow permanent;" /etc/nginx/sites-available/default
+sed -i "/listen \[::]:80 default_server;/a\	error_page 404 /404.html;" /etc/nginx/sites-available/default
 
-
-$SU mkdir --parents "${DIR_SERVER}"
-$SU echo "Hello World" > "${DIR_SERVER}index.html"
-$SU echo "Ceci n'est pas une page" > "${DIR_SERVER}error404.html"
-
-
-$SU sed -i "/server_name _;/ a\\${REDIRECT}" $DIR
-sed -i "s/^server\s{/$ERROR404/1" $DIR
-$SU service nginx restart
+service nginx restart
